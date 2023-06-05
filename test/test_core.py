@@ -1641,7 +1641,7 @@ int main(int argc, char **argv) {
                   // __cxa_end_catch. Fix this inconsistency later.
                   incrementExceptionRefcount(p);
 #endif
-                  console.log(getExceptionMessage(p).toString());
+                  out(getExceptionMessage(p).toString());
                   decrementExceptionRefcount(p);
               }
             }
@@ -2860,7 +2860,7 @@ The current type of b is: 9
     # Add the onAbort handler at runtime during preRun.  This means that onAbort
     # handler will only be present in the main thread (much like it would if it
     # was passed in by pre-populating the module object on prior to loading).
-    self.add_pre_run("Module.onAbort = function() { console.log('onAbort called'); }")
+    self.add_pre_run("Module.onAbort = function() { out('onAbort called'); }")
     self.do_run_in_out_file_test('pthread/test_pthread_abort.c', assert_returncode=NON_ZERO)
 
   @node_pthreads
@@ -4401,9 +4401,9 @@ ok
       #include "header.h"
       int main(int argc, char **argv) {
         charfunc f1 = emscripten_run_script;
-        f1("console.log('one')");
+        f1("out('one')");
         charfunc f2 = get();
-        f2("console.log('two')");
+        f2("out('two')");
         return 0;
       }
       ''',
@@ -7692,7 +7692,7 @@ void* operator new(size_t size) {
       #include <stdio.h>
 
       EM_JS(void, calltest, (), {
-        console.log("dotest returned: " + Module.dotest());
+        out("dotest returned: " + Module.dotest());
       });
 
       int main(int argc, char** argv){
@@ -7724,7 +7724,7 @@ void* operator new(size_t size) {
       #include <stdio.h>
 
       EM_JS(void, calltest, (), {
-        console.log("dotest returned: " + Module.dotest());
+        out("dotest returned: " + Module.dotest());
       });
 
       int main(int argc, char** argv){
@@ -8289,9 +8289,9 @@ Module['onRuntimeInitialized'] = function() {
   runtimeKeepalivePush();
   ccall('stringf', 'string', ['string'], ['first\n'], { async: true })
     .then(function(val) {
-      console.log(val);
+      out(val);
       ccall('floatf', 'number', null, null, { async: true }).then(function(arg) {
-        console.log(arg);
+        out(arg);
         runtimeKeepalivePop();
         maybeExit();
       });
@@ -8645,9 +8645,9 @@ Module['onRuntimeInitialized'] = function() {
         out(typeof FS.filesystems['IDBFS']);
         out(typeof FS.filesystems['NODEFS']);
         // Globals
-        console.log(typeof MEMFS);
-        console.log(typeof IDBFS);
-        console.log(typeof NODEFS);
+        out(typeof MEMFS);
+        out(typeof IDBFS);
+        out(typeof NODEFS);
       };
     ''')
     self.emcc_args += ['--pre-js', 'pre.js']
@@ -8664,14 +8664,14 @@ Module['onRuntimeInitialized'] = function() {
         out(typeof FS.filesystems['IDBFS']);
         out(typeof FS.filesystems['NODEFS']);
         // Globals
-        console.log(typeof MEMFS);
-        console.log(IDBFS);
-        console.log(NODEFS);
+        out(typeof MEMFS);
+        out(IDBFS);
+        out(NODEFS);
         FS.mkdir('/working1');
         try {
           FS.mount(IDBFS, {}, '/working1');
         } catch (e) {
-          console.log('|' + e + '|');
+          out('|' + e + '|');
         }
       };
     ''')

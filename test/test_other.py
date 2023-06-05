@@ -1376,7 +1376,7 @@ int f() {
 
     create_file('pre.js', '''
       Module.onRuntimeInitialized = () => {
-        console.log(Module._libf1 ? Module._libf1() : 'unexported');
+        out(Module._libf1 ? Module._libf1() : 'unexported');
       };
     ''')
 
@@ -2424,7 +2424,7 @@ int f() {
         # Calling main later should still work, filesystem etc. must be set up.
         print('call main later')
         src = read_file('a.out.js')
-        src += '\nconsole.log("callMain -> " + Module.callMain());\n'
+        src += '\nout("callMain -> " + Module.callMain());\n'
         create_file('a.out.js', src)
         self.assertContained('hello from main\ncallMain -> 0\n', self.run_js('a.out.js'))
 
@@ -3296,7 +3296,7 @@ void wakaw::Cm::RasterBase<wakaw::watwat::Polocator>::merbine1<wakaw::Cm::Raster
     create_file('pre.js', '''
       Module.onRuntimeInitialized = () => {
         Module.setErrNo(88);
-        console.log('done');
+        out('done');
       }
     ''')
     self.do_runf(test_file('hello_world.c'), 'done', emcc_args=['--pre-js=pre.js', '-sEXPORTED_RUNTIME_METHODS=setErrNo'])
@@ -9011,7 +9011,7 @@ var Module = {
     create_file('src.c', r'''
 #include <emscripten.h>
 EMSCRIPTEN_KEEPALIVE void foo() {
-  EM_ASM({ console.log("bar") });
+  EM_ASM({ log("bar") });
 }
 ''')
     self.do_runf('src.c', 'bar', emcc_args=['--pre-js', 'pre.js', '-sMAIN_MODULE=2'])
@@ -10617,7 +10617,7 @@ int main(void) {
 
   def test_INCOMING_MODULE_JS_API_missing(self):
     create_file('pre.js', '''
-    Module['onRuntimeInitialized'] = () => console.log('initialized')
+    Module['onRuntimeInitialized'] = () => out('initialized')
     ''')
     self.emcc_args += ['--pre-js=pre.js']
     self.do_runf(test_file('hello_world.c'), 'initialized')
@@ -10791,11 +10791,11 @@ int main(void) {
       #include <emscripten.h>
       int main() {
         EM_ASM({
-          console.log();
+          out();
           function check(name) {
             try {
               Module[name];
-              console.log("success: " + name);
+              out("success: " + name);
             } catch(e) {
             }
           }
@@ -10823,7 +10823,7 @@ Aborted(Module.arguments has been replaced with plain arguments_ (the initial va
       try {
         Module()._main;
       } catch(e) {
-        console.log(e);
+        out(e);
       }
       try {
         Module().onRuntimeInitialized = 42;
@@ -10880,7 +10880,7 @@ Aborted(Module.arguments has been replaced with plain arguments_ (the initial va
     create_file('foo.c', '''
       #include <emscripten.h>
       void foo() {
-        EM_ASM({ console.log('Hello, world!'); });
+        EM_ASM({ out('Hello, world!'); });
       }
     ''')
     create_file('main.c', '''
@@ -10890,7 +10890,7 @@ Aborted(Module.arguments has been replaced with plain arguments_ (the initial va
 
       int main() {
         foo();
-        EM_ASM({ console.log('Hello, world!'); });
+        EM_ASM({ out('Hello, world!'); });
         return 0;
       }
     ''')
@@ -10903,7 +10903,7 @@ Aborted(Module.arguments has been replaced with plain arguments_ (the initial va
     create_file('src.c', '''
       #include <emscripten/em_asm.h>
       int main(void) {
-        EM_ASM({ console.log('hello'); });
+        EM_ASM({ out('hello'); });
       }\n''')
     self.run_process([EMCC, '-c', 'src.c',
                       '-pedantic', '-Wall', '-Werror',
@@ -10913,7 +10913,7 @@ Aborted(Module.arguments has been replaced with plain arguments_ (the initial va
     create_file('src.c', '''
       #include <emscripten/em_asm.h>
       int main() {
-        EM_ASM({ console.log('Hello, world!'); });
+        EM_ASM({ out('Hello, world!'); });
       }
     ''')
     err = self.expect_fail([EMCC, '-std=c11', 'src.c'])
@@ -10931,7 +10931,7 @@ Aborted(Module.arguments has been replaced with plain arguments_ (the initial va
         jmp_buf buf;
         setjmp(buf);
         EM_ASM({
-          console.log("hello world");
+          out("hello world");
         });
       }
     ''')
@@ -11406,7 +11406,7 @@ Aborted(Module.arguments has been replaced with plain arguments_ (the initial va
   def test_native_call_before_init(self):
     self.set_setting('ASSERTIONS')
     self.set_setting('EXPORTED_FUNCTIONS', ['_foo'])
-    self.add_pre_run('console.log("calling foo"); Module["_foo"]();')
+    self.add_pre_run('out("calling foo"); Module["_foo"]();')
     create_file('foo.c', '#include <stdio.h>\nint foo() { puts("foo called"); return 3; }')
     self.build('foo.c')
     out = self.run_js('foo.js', assert_returncode=NON_ZERO)
@@ -11415,7 +11415,7 @@ Aborted(Module.arguments has been replaced with plain arguments_ (the initial va
   def test_native_call_after_exit(self):
     self.set_setting('ASSERTIONS')
     self.set_setting('EXIT_RUNTIME')
-    self.add_on_exit('console.log("calling main again"); Module["_main"]();')
+    self.add_on_exit('out("calling main again"); Module["_main"]();')
     create_file('foo.c', '#include <stdio.h>\nint main() { puts("foo called"); return 0; }')
     self.build('foo.c')
     out = self.run_js('foo.js', assert_returncode=NON_ZERO)
@@ -11520,12 +11520,12 @@ int main () {
           try {
             _malloc(1);
           } catch(e) {
-            console.log('exception:', e);
+            out('exception:', e);
           }
           try {
             _free();
           } catch(e) {
-            console.log('exception:', e);
+            out('exception:', e);
           }
         });
       }

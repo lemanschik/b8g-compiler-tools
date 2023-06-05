@@ -82,9 +82,9 @@ EM_BOOL WaitToJoin(double time, void *userData)
 	if (!threadsRunning)
 	{
 		if (counter == numThreadsToCreateTotal)
-			EM_ASM(console.log('All threads finished. Counter = ' + $0 + ' as expected.'), counter);
+			EM_ASM(out('All threads finished. Counter = ' + $0 + ' as expected.'), counter);
 		else
-			EM_ASM(console.error('All threads finished, but counter = ' + $0 + ' != ' + $1 + '!'), counter, numThreadsToCreateTotal);
+			EM_ASM(err('All threads finished, but counter = ' + $0 + ' != ' + $1 + '!'), counter, numThreadsToCreateTotal);
 		assert(counter == 50);
 		emscripten_force_exit(0);
 		return EM_FALSE;

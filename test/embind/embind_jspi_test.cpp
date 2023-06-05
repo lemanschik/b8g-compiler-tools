@@ -76,9 +76,9 @@ EM_ASYNC_JS(void, test, (), {
     await check(Module.MyClass.voidClass());
     await check(Module.MyClass.intClass(1), 2);
 
-    console.log('done');
+    out('done');
   } catch (e) {
-    console.log('Failed: ' + e.stack);
+    out('Failed: ' + e.stack);
   }
 });
 

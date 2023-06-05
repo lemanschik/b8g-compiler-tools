@@ -17,10 +17,10 @@ int main()
 {
 	intfunc f = (intfunc)emscripten_get_exported_function("_foo");
 	intfunc b = (intfunc)emscripten_get_exported_function("_bar");
-	EM_ASM(console.log($0 + ' ' + $1), f(), b());
+	EM_ASM(out($0 + ' ' + $1), f(), b());
 
 	// Obtaining the same function pointer twice should return the
 	// same address.
 	intfunc b2 = (intfunc)emscripten_get_exported_function("_bar");
-	EM_ASM(console.log($0), b == b2);
+	EM_ASM(out($0), b == b2);
 }
