@@ -138,7 +138,7 @@ function runJSify() {
         // body in an inner function.
         newArgs = newArgs.join(',');
         return `\
-function ${name}(${args}) {
+function(${args}) {
   var ret = ((${args}) => { ${body} })(${newArgs});
   return BigInt(ret);
 }`;
@@ -147,7 +147,7 @@ function ${name}(${args}) {
       // Otherwise no inner function is needed and we covert the arguments
       // before executing the function body.
       return `\
-function ${name}(${args}) {
+function(${args}) {
 ${argConvertions}
   ${body};
 }`;
@@ -162,9 +162,6 @@ ${argConvertions}
     // uniform.
     snippet = snippet.toString().replace(/\r\n/gm, '\n');
 
-    // name the function; overwrite if it's already named
-    snippet = snippet.replace(/function(?:\s+([^(]+))?\s*\(/, 'function ' + mangled + '(');
-
     if (isStub) {
       return snippet;
     }
@@ -172,7 +169,7 @@ ${argConvertions}
     // apply LIBRARY_DEBUG if relevant
     if (LIBRARY_DEBUG && !isJsOnlySymbol(symbol)) {
       snippet = modifyFunction(snippet, (name, args, body) => `\
-function ${name}(${args}) {
+function(${args}) {
   var ret = (function() { if (runtimeDebug) err("[library call:${mangled}: " + Array.prototype.slice.call(arguments).map(prettyPrint) + "]");
   ${body}
   }).apply(this, arguments);
@@ -190,7 +187,7 @@ function ${name}(${args}) {
         const sync = proxyingMode === 'sync';
         if (PTHREADS) {
           snippet = modifyFunction(snippet, (name, args, body) => `
-function ${name}(${args}) {
+function(${args}) {
 if (ENVIRONMENT_IS_PTHREAD)
   return proxyToMainThread(${proxiedFunctionTable.length}, ${+sync}${args ? ', ' : ''}${args});
 ${body}
@@ -199,7 +196,7 @@ ${body}
           // In ASSERTIONS builds add runtime checks that proxied functions are not attempted to be called in Wasm Workers
           // (since there is no automatic proxying architecture available)
           snippet = modifyFunction(snippet, (name, args, body) => `
-function ${name}(${args}) {
+function(${args}) {
   assert(!ENVIRONMENT_IS_WASM_WORKER, "Attempted to call proxied function '${name}' in a Wasm Worker, but in Wasm Worker enabled builds, proxied function architecture is not available!");
   ${body}
 }\n`);
@@ -437,15 +434,17 @@ function ${name}(${args}) {
       if (isFunction) {
         // Emit the body of a JS library function.
         if ((USE_ASAN || USE_LSAN || UBSAN_RUNTIME) && LibraryManager.library[symbol + '__noleakcheck']) {
-          contentText = modifyFunction(snippet, (name, args, body) => `
-function ${name}(${args}) {
-  return withBuiltinMalloc(function() {
-    ${body}
-  });
-}\n`);
+          contentText = modifyFunction(snippet, (name, args, body) => `(${args}) => withBuiltinMalloc(() => {${body}})`);
           deps.push('$withBuiltinMalloc');
         } else {
           contentText = snippet; // Regular JS function that will be executed in the context of the calling thread.
+        }
+
+        // name the function; overwrite if it's already named
+        if (contentText.match(/^\s*([^}]*)\s*=>/s)) {
+          contentText = `var ${mangled} = ` + contentText + ';';
+        } else {
+          contentText = contentText.replace(/function(?:\s+([^(]+))?\s*\(/, `function ${mangled}(`);
         }
       } else if (typeof snippet == 'string' && snippet.startsWith(';')) {
         // In JS libraries
