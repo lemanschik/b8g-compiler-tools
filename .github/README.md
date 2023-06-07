@@ -1,5 +1,5 @@
 # Implementation of the opfs.zip stack
-into Emscript for usage with B8G as also incremental addoption and compilation of emscripten it self
+into Emscript for usage with B8G as also incremental adoption and compilation of emscripten it self
 into wasm 
 
 ## Experiments
